@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title></title>
+
+    <style type="text/css">
+      #div {
+        position:relative;
+      }
+      #div2 {
+        position:absolute;
+        z-index: 1;
+      }
+      #heatmap {
+        width: 640px;
+        height: 480px;
+        top: 0;
+        position:absolute;
+        z-index: 2;
+      }
+      #clickDiv {
+        width: 640px;
+        height: 480px;
+        top: 0;
+        position:absolute;
+        z-index: 10;
+      }
+    </style>
+
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
+    <script type="text/javascript" src="js/heatmap.min.js"></script>
+    
+    <script type="text/javascript">
+      $(document).ready(function() {
+        console.log("etf");
+        $('#clickDiv').mousedown(function(e) {
+          e.stopPropagation();
+          var parentOffset = $(this).parent().offset();
+          //or $(this).offset(); if you really just want the current element's offset
+          var relX = e.pageX - parentOffset.left;
+          var relY = e.pageY - parentOffset.top;
+          $.post( "/click", JSON.stringify({ x: relX, y: relY }));
+          console.log("click: " + relX + " " + relY);
+        });
+
+        var heatmapInstance = h337.create({
+          // only container is required, the rest will be defaults
+          container: document.querySelector('.heatmap'),
+          radius: 90
+        });
+
+        var connection = new WebSocket('ws://localhost:8080/ws');
+        connection.onmessage = function(evt) { 
+           data = JSON.parse(evt.data);
+          heatmapInstance.addData({
+            x: data.X,
+            y: data.Y,
+            value: 1
+          });
+        }; 
+
+      });
+    </script>
+    
+  </head>
+  <body>
+    <div id="div">
+      <div id="div2" style="width:195px;height:120px;">
+        <object type="application/x-shockwave-flash"
+        height="480"
+        width="640"
+        id="live_embed_player_flash"
+        data="http://www.twitch.tv/widgets/live_embed_player.swf?channel=DDRBoxman"
+        bgcolor="#000000">
+        <param  name="allowFullScreen"
+        value="true" />
+        <param  name="allowScriptAccess"
+        value="always" />
+        <param  name="allowNetworking"
+        value="all" />
+        <param  name="movie"
+        value="http://www.twitch.tv/widgets/live_embed_player.swf" />
+        <param name="wmode" value="transparent" />
+        <param  name="flashvars"
+        value="hostname=www.twitch.tv&channel=DDRBoxman&auto_play=true&start_volume=100" />
+        </object>
+      </div>
+    </div>
+    <div id="heatmap" class="heatmap">
+    </div>
+    <div id="clickDiv">
+    </div>
+  </body>
+</html>
